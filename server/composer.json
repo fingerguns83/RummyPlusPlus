@@ -1,0 +1,16 @@
+{
+    "require": {
+        "cboden/ratchet": "^0.4.4",
+        "ramsey/uuid": "^4.7",
+        "fakerphp/faker": "^1.23",
+        "php-parallel-lint/php-console-color": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "FGFC\\": "src/FGFC/"
+        }
+    }
+}

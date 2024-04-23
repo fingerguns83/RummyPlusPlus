@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    @font-face {
+        font-family: "Fraunces", serif;
+        font-weight: 400;
+        font-style: normal;
+        src: url('https://fonts.googleapis.com/css2?family=Fraunces:opsz@9..144&display=swap');
+    }
+}
+
+@layer components {
+    .playingcard {
+        @apply flex items-center justify-center bg-gray-200 w-[8vh] h-[10vh] lg:w-[14vh] lg:h-[18vh] rounded-lg font-fancy border-4 border-purple-900 drop-shadow-2xl
+    }
+
+    .drawpile {
+        @apply flex items-center justify-center p-1 lg:py-3 lg:px-2 w-[8vh] h-[10vh] lg:w-[14vh] lg:h-[18vh] rounded-lg font-fancy text-3xl lg:text-6xl text-amber-500 bg-purple-700 border-4 border-purple-900 hover:cursor-pointer
+    }
+    .deckholder {
+        @apply flex w-1/4 md:w-1/5 xl:w-1/6 h-full justify-center items-center
+    }
+
+    .actionbar {
+        @apply h-[10%] bg-white bg-opacity-20
+    }
+    .actionbar-active {
+        @apply bg-amber-500 bg-opacity-30
+    }
+    .actionbar-out {
+        @apply bg-sky-500 bg-opacity-20
+    }
+
+    .player-name-holder {
+        @apply w-[70%] h-full bg-gradient-to-bl from-stone-300 to-stone-400 border-2 border-r-0 border-t-stone-300 border-l-stone-400 border-b-stone-500 rounded-l-lg font-fancy text-2xl text-black
+    }
+    .player-name-holder-active {
+        @apply border-t-amber-300 border-l-amber-400 border-b-amber-500 from-amber-300 to-amber-400
+    }
+    .player-name-holder-out {
+        @apply border-t-sky-300 border-l-sky-400 border-b-sky-500 from-sky-300 to-sky-400
+    }
+
+    .player-score-holder {
+        @apply flex w-[30%] h-full justify-center items-center bg-gradient-to-br from-stone-300 to-stone-400 border-2 border-l-0 border-t-stone-300 border-r-stone-400 border-b-stone-500 rounded-r-lg font-fancy text-black text-2xl
+    }
+    .player-score-holder-active {
+        @apply border-t-amber-300 border-r-amber-400 border-b-amber-500 from-amber-300 to-amber-400
+    }
+    .player-score-holder-out {
+        @apply border-t-sky-300 border-r-sky-400 border-b-sky-500 from-sky-300 to-sky-400
+    }
+
+    .playerphoto {
+        @apply rounded-full w-14 h-14 border-2 border-stone-700
+    }
+
+    .player-photo-holder-lg {
+        @apply hidden xl:flex w-1/3 h-full justify-center items-center bg-gradient-to-br from-stone-300 to-stone-400 border-4 border-r-2 border-t-stone-300 border-l-stone-400 border-b-stone-500 border-r-stone-500 rounded-l-xl
+    }
+    .player-photo-holder-lg-active {
+        @apply border-t-amber-300 border-l-amber-400 border-b-amber-500 from-amber-300 to-amber-400
+    }
+    .player-photo-holder-lg-out {
+        @apply border-t-sky-300 border-l-sky-400 border-b-sky-500 from-sky-300 to-sky-400
+    }
+
+    .player-info-holder {
+        @apply w-full xl:w-2/3 h-full font-fancy text-2xl
+    }
+
+    .player-name-holder-lg {
+        @apply flex h-1/2 truncate bg-gradient-to-bl from-stone-300 to-stone-400 border-t-4 border-r-4 border-l-4 xl:border-l-0 border-t-stone-300 border-r-stone-400  border-l-stone-400 rounded-tr-xl rounded-tl-xl xl:rounded-tl-none
+    }
+    .player-name-holder-lg-active {
+        @apply border-t-amber-300 border-r-amber-400 border-l-amber-400 from-amber-300 to-amber-400
+    }
+    .player-name-holder-lg-out {
+        @apply border-t-sky-300 border-r-sky-400 border-l-sky-400 from-sky-300 to-sky-400
+    }
+
+    .player-score-holder-lg {
+        @apply flex h-1/2 justify-center items-center bg-gradient-to-br from-stone-400 to-stone-300 border-b-4 border-r-4 border-l-4 xl:border-l-0 border-b-stone-500 border-r-stone-400 border-l-stone-400 rounded-br-xl rounded-bl-xl xl:rounded-bl-none
+    }
+    .player-score-holder-lg-active {
+        @apply border-b-amber-500 border-r-amber-400 border-l-amber-400 from-amber-400 to-amber-300
+    }
+    .player-score-holder-lg-out {
+        @apply border-b-sky-500 border-r-sky-400 border-l-sky-400 from-sky-400 to-sky-300
+    }
+}
