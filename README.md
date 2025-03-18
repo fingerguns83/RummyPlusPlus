@@ -1,6 +1,6 @@
 # RummyPlusPlus
 
-An unofficial recreation of the Five Crowns® card game built using tape and popsicle sticks (RatchetPHP and jQuery) for my mother.
+An unofficial recreation of the Five Crowns® card game built using tape and popsicle sticks (RatchetPHP, jQuery, and TailwindCSS) for my mother.
 
 Current progress can be viewed at https://beta.rummyplusplus.com
 
