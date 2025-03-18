@@ -210,8 +210,7 @@ class Game
                 $this->players[count($this->players) - 1]->setDealer(true);
                 $dealer = $this->players[count($this->players) - 1]; // Assign the selected dealer to dealer variable
             }
-        }
-        // If a dealer already exists
+        } // If a dealer already exists
         else {
             // Retrieve the current dealer
             $dealer = $this->getDealer();
@@ -275,7 +274,8 @@ class Game
         $this->players[$nextPlayerIndex]->setCurrentPlayer(true);
     }
 
-    public function getNextPlayer(): Player {
+    public function getNextPlayer(): Player
+    {
         // Initialize the current player index
         $currentIndex = 0;
 
@@ -356,17 +356,45 @@ class Game
 
         // If it's the first round, set round number to 3,
         // Otherwise, increment the round number
-        if ($this->roundNumber == 0) {
-            $this->roundNumber = 3;
+
+
+        if ($this->roundNumber < 13) {
+            if ($this->roundNumber == 0) {
+                $this->roundNumber = 3;
+            } else {
+                $this->roundNumber++;
+            }
+
+            // Initialize the current round
+            $this->currentRound = new Round($this);
+
+            // Start the current round
+            $this->currentRound->beginRound();
         } else {
-            $this->roundNumber++;
+            $this->endGame();
+        }
+    }
+
+    public function endGame(): void
+    {
+        foreach ($this->players as $player) {
+            if (!$player instanceof CPUPlayer) {
+                $message = new Message(MessageType::STATE, new MessagePayload(StateType::ENDG, $this->getScoreboard()));
+                $message->send($player->getConn());
+            }
+        }
+    }
+
+    public function getScoreboard(): array {
+        $output = [];
+        foreach ($this->players as $player) {
+            $output[] = ['name' => $player->getName(), 'score' => $player->getScore()];
         }
 
-        // Initialize the current round
-        $this->currentRound = new Round($this);
-
-        // Start the current round
-        $this->currentRound->beginRound();
+        usort($output, function ($a, $b) {
+            return $b['score'] <=> $a['score'];
+        });
+        return array('players' => $output);
     }
 
     /**
@@ -385,11 +413,11 @@ class Game
         // Initialising game state array with roundNumber, discardPileTop, and currentPlayer
         $gameState = ['roundNumber' => $this->roundNumber]; // Fetching the round number
 
-        if ($this->getCurrentPlayer()){
+        if ($this->getCurrentPlayer()) {
             $gameState['currentPlayer'] = $this->getCurrentPlayer()->getId(); // Getting the id of the current player
         }
 
-        if ($this->currentRound !== null && $this->getCurrentRound()->getDiscardDeck() !== null){
+        if ($this->currentRound !== null && $this->getCurrentRound()->getDiscardDeck() !== null) {
             $gameState['discardPileTop'] = (count($this->currentRound->getDiscardDeck()->getCards()) === 0) ? null : $this->currentRound->getDiscardDeck()->getCards(true)[0]->getCard(true); // Checking if discard pile is empty, if not empty, then fetch the top card
         }
         // Looping through each player
@@ -435,7 +463,7 @@ class Game
         DebugOutput::send("Checking if the card set is a valid set");
         $isValidSet = $this->isValidSet($cardSet);
 
-        if($isValidSet) {
+        if ($isValidSet) {
             DebugOutput::send("The card set is a valid set");
         }
 
@@ -443,7 +471,7 @@ class Game
         DebugOutput::send("Checking if the card set is a valid run");
         $isValidRun = $this->isValidRun($cardSet);
 
-        if($isValidRun) {
+        if ($isValidRun) {
             DebugOutput::send("The card set is a valid run");
         }
 
@@ -492,7 +520,7 @@ class Game
 
         // Calculate the number of unique sets
         $setCount = count($sets);
-        DebugOutput::send("Set count calculated: ".$setCount);
+        DebugOutput::send("Set count calculated: " . $setCount);
 
         // If there's more than one or no sets, return false
         if ($setCount !== 1) {
@@ -603,13 +631,14 @@ class Game
      *
      * @return int The score of the book
      */
-    public function calculateBookScore(array $book): int {
+    public function calculateBookScore(array $book): int
+    {
         // Initialize the score to 0
         $score = 0;
         // Check if the provided set of cards does not form a valid set or a valid run
-        if (!$this->isValidSet($book) && !$this->isValidRun($book)){
+        if (!$this->isValidSet($book) && !$this->isValidRun($book)) {
             // If the set of cards does not form a valid set or run, calculate the total score of the individual cards
-            foreach ($book as $card){
+            foreach ($book as $card) {
                 // Add the points of the individual card to the total score. The points of the card are calculated based on the round number
                 $score += $card->getPoints($this->getRoundNumber());
             }
@@ -630,11 +659,11 @@ class Game
         // Initialize score to 0
         $score = 0;
         // Loop through each book in the provided array
-        foreach ($books as $book){
+        foreach ($books as $book) {
             // Check if the book is neither a valid set nor a valid run
-            if (!$this->isValidSet($book) && !$this->isValidRun($book)){
+            if (!$this->isValidSet($book) && !$this->isValidRun($book)) {
                 // Loop through each card in the invalidated book
-                foreach ($book as $card){
+                foreach ($book as $card) {
                     // Add the points of the current card to the score
                     $score += $card->getPoints($this->getRoundNumber());
                 }
@@ -644,20 +673,21 @@ class Game
         return $score;
     }
 
-    public function calculateScore(Player $player, array|null $books, array|null $remainder) : int{
+    public function calculateScore(Player $player, array|null $books, array|null $remainder): int
+    {
         $score = 0;
 
-        if ($books !== null && count($books) > 0){
-            foreach($books as $book){
+        if ($books !== null && count($books) > 0) {
+            foreach ($books as $book) {
                 $tempBook = [];
-                foreach($book as $card){
+                foreach ($book as $card) {
                     $tempBook[] = $player->getCard($card);
                 }
                 $score += $this->calculateBookScore($tempBook);
             }
         }
-        if ($remainder !== null){
-            foreach ($remainder as $card){
+        if ($remainder !== null) {
+            foreach ($remainder as $card) {
                 $score += $player->getCard($card)->getPoints($this->getRoundNumber());
             }
         }

@@ -8,7 +8,7 @@ use FGFC\enum\MessageType;
 use FGFC\Message;
 use FGFC\MessagePayload;
 
-class ActionHandler extends MessageHandler
+class IntentHandler extends MessageHandler
 {
 
     public function handle() : void {
@@ -31,7 +31,7 @@ class ActionHandler extends MessageHandler
                 $this->messages[] = new Message(MessageType::ACTION, new MessagePayload(ActionType::DISCARD, $this->game->getGameState($player->getId())));
                 break;
             case ActionType::OUT->value:
-                $score = $this->game->calculateScore($player, $this->msg['payload']['data']['books'], $this->msg['payload']['data']['remainder']);
+                $score = $this->game->calculateScore($player, $this->msg['payload']['data']['books'], (isset($this->msg['payload']['data']['remainder'])) ? $this->msg['payload']['data']['remainder'] : null);
                 if ($score > 0){
                     $this->messages[] = new Message(MessageType::INFO, new MessagePayload(InfoType::BADOUT, $this->game->getGameState($player->getId())));
                 }

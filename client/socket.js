@@ -3,8 +3,9 @@ import * as faker from '@faker-js/faker';
 
 
 let timeout = 0; // declare outside websocket function
-//export let conn = new WebSocket('ws://' + window.location.hostname + ":8988");
-export let conn = new WebSocket('ws://10.0.0.8:8988');
+//export let conn = new WebSocket('wss://serv.rummyplusplus.com');
+export let conn = new WebSocket('ws://localhost:8988');
+//export let conn = new WebSocket('ws://10.0.0.8:8988');
 var timeoutInterval;
 
 
@@ -12,16 +13,13 @@ function resetAndReconnect() {
     clearInterval(timeoutInterval); // stop the interval
     timeout = 0; // reset timeout
     conn.close(); // close current connection
-    conn = new WebSocket('ws://' + window.location.hostname + ":8988"); // reconnect
+    conn = new WebSocket('wss://serv.rummyplusplus.com'); // reconnect
 }
 
 function checkTimeout(){
     timeout++; // increment the timeout by 1
-    if (timeout > 10){
+    if (timeout > 120) {
         console.log(timeout); // to see the increment in console
-    }
-
-    if (timeout > 10) {
         resetAndReconnect();
     }
 }

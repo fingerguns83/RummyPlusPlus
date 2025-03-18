@@ -13,11 +13,11 @@
 
 @layer components {
     .playingcard {
-        @apply flex items-center justify-center bg-gray-200 w-[8vh] h-[10vh] lg:w-[14vh] lg:h-[18vh] rounded-lg font-fancy border-4 border-purple-900 drop-shadow-2xl
+        @apply flex items-center justify-center bg-gray-200 w-[8vh] h-[10vh] lg:w-[14vh] lg:h-[18vh] rounded-lg border-4 border-purple-900 drop-shadow-2xl
     }
 
     .drawpile {
-        @apply flex items-center justify-center p-1 lg:py-3 lg:px-2 w-[8vh] h-[10vh] lg:w-[14vh] lg:h-[18vh] rounded-lg font-fancy text-3xl lg:text-6xl text-amber-500 bg-purple-700 border-4 border-purple-900 hover:cursor-pointer
+        @apply flex items-center justify-center p-1 lg:py-3 lg:px-2 w-[8vh] h-[10vh] lg:w-[14vh] lg:h-[18vh] rounded-lg text-3xl lg:text-6xl text-amber-500 bg-purple-700 border-4 border-purple-900 hover:cursor-pointer
     }
     .deckholder {
         @apply flex w-1/4 md:w-1/5 xl:w-1/6 h-full justify-center items-center
@@ -34,7 +34,7 @@
     }
 
     .player-name-holder {
-        @apply w-[70%] h-full bg-gradient-to-bl from-stone-300 to-stone-400 border-2 border-r-0 border-t-stone-300 border-l-stone-400 border-b-stone-500 rounded-l-lg font-fancy text-2xl text-black
+        @apply w-[70%] h-full bg-gradient-to-bl from-stone-300 to-stone-400 border-2 border-r-0 border-t-stone-300 border-l-stone-400 border-b-stone-500 rounded-l-lg text-2xl text-black
     }
     .player-name-holder-active {
         @apply border-t-amber-300 border-l-amber-400 border-b-amber-500 from-amber-300 to-amber-400
@@ -44,7 +44,7 @@
     }
 
     .player-score-holder {
-        @apply flex w-[30%] h-full justify-center items-center bg-gradient-to-br from-stone-300 to-stone-400 border-2 border-l-0 border-t-stone-300 border-r-stone-400 border-b-stone-500 rounded-r-lg font-fancy text-black text-2xl
+        @apply flex w-[30%] h-full justify-center items-center bg-gradient-to-br from-stone-300 to-stone-400 border-2 border-l-0 border-t-stone-300 border-r-stone-400 border-b-stone-500 rounded-r-lg text-black text-2xl
     }
     .player-score-holder-active {
         @apply border-t-amber-300 border-r-amber-400 border-b-amber-500 from-amber-300 to-amber-400
@@ -68,7 +68,7 @@
     }
 
     .player-info-holder {
-        @apply w-full xl:w-2/3 h-full font-fancy text-2xl
+        @apply w-full xl:w-2/3 h-full text-2xl
     }
 
     .player-name-holder-lg {

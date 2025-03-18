@@ -95,8 +95,16 @@ class Client
     /**
      * @return Game
      */
-    public function getGame(): Game
+    public function getGame(): Game|null
     {
-        return $this->game;
+        return $this->game ?? null;
+    }
+
+    /**
+     * @param Game $game
+     */
+    public function setGame(Game $game): void
+    {
+        $this->game = $game;
     }
 }

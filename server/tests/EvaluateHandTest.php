@@ -108,7 +108,7 @@ class EvaluateHandTest extends TestCase
                     new Card(2, 'spades', 9),
                     new Card(3, 'hearts', 11),
                 ],
-                "score" => 1
+                "score" => 29
             ],
             'Size 3, Set off by one with wild' => [
                 "size" => 3,
@@ -117,7 +117,7 @@ class EvaluateHandTest extends TestCase
                     new Card(2, 'spades', 3),
                     new Card(4, 'diamonds', 11),
                 ],
-                "score" => 1
+                "score" => 40
             ],
             'Size 3, Set off by one with joker' => [
                 "size" => 3,
@@ -126,7 +126,7 @@ class EvaluateHandTest extends TestCase
                     new Card(2, null, 0),
                     new Card(3, 'diamonds', 11),
                 ],
-                "score" => 1
+                "score" => 70
             ],
             'Size 3, Set off by two' => [
                 "size" => 3,
@@ -135,17 +135,17 @@ class EvaluateHandTest extends TestCase
                     new Card(2, 'spades', 5),
                     new Card(3, 'hearts', 11),
                 ],
-                "score" => 2
+                "score" => 25
             ],
             'Size 4, Set off by two with wild' => [
                 "size" => 4,
                 "hand" => [
                     new Card(1, 'hearts', 8),
-                    new Card(2, 'stars', 3),
+                    new Card(2, 'stars', 4),
                     new Card(3, 'hearts', 11),
                     new Card(4, 'diamonds', 9)
                 ],
-                "score" => 2
+                "score" => 48
             ],
             'Size 4, Set off by two with joker' => [
                 "size" => 4,
@@ -155,7 +155,7 @@ class EvaluateHandTest extends TestCase
                     new Card(3, 'hearts', 11),
                     new Card(4, 'diamonds', 9)
                 ],
-                "score" => 2
+                "score" => 78
             ],
             'Size 4, Run off by two' => [
                 "size" => 4,
@@ -165,7 +165,7 @@ class EvaluateHandTest extends TestCase
                     new Card(3, 'hearts', 11),
                     new Card(4, 'diamonds', 5)
                 ],
-                "score" => 2
+                "score" => 38
             ],
             "Dummy test" => [
                 "size" => 3,
@@ -174,7 +174,7 @@ class EvaluateHandTest extends TestCase
                     new Card(25, "hearts", 5),
                     new Card(34, "hearts", 6)
                 ],
-                "score" => 1
+                "score" => 23
             ]
         ];
     }

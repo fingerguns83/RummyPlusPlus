@@ -1,38 +1,28 @@
 import './style.css'
-import * as faker from '@faker-js/faker';
 import {conn} from './socket.js';
-import {pl} from "@faker-js/faker";
 
 export var playerId;
+export var playerName = "";
 export var discardTop;
 export var currentPlayer = false;
 export var lastRound = false;
 export var books = [];
 export var goOutCards = [];
 export var tempDiscard;
+export var drawn = false;
 
 
 /* SOUNDS */
-var drawSounds = [
-    new Audio('/assets/sounds/draw_1.mp3'),
-    new Audio('/assets/sounds/draw_2.mp3'),
-    new Audio('/assets/sounds/draw_3.mp3')
-];
-var dealSounds = [
-    new Audio('/assets/sounds/deal_1.mp3'),
-    new Audio('/assets/sounds/deal_2.mp3')
-];
-var discardSounds = [
-    new Audio('/assets/sounds/discard_1.mp3'),
-    new Audio('/assets/sounds/discard_2.mp3')
-];
-var outSound = new Audio('/assets/sounds/player_out.mp3');
-var outSoundNotFirst = new Audio('/assets/sounds/player_out_2.mp3');
-var roundStartSound = new Audio('/assets/sounds/round_start.mp3');
-var roundEndSound = new Audio('/assets/sounds/round_end.mp3');
-var yourTurnSound = new Audio('/assets/sounds/your_turn.mp3');
+var drawSounds = [];
+var dealSounds = [];
+var discardSounds = [];
+var outSound;
+var outSoundNotFirst;
+var roundStartSound;
+var roundEndSound;
+var yourTurnSound;
+var shuffleSound;
 
-//yourTurnSound.volume = 0.4;
 function playRandomDeal() {
 
     let randomAudio = dealSounds[Math.floor(Math.random() * dealSounds.length)];
@@ -51,6 +41,58 @@ function playRandomDiscard() {
 }
 
 /*---------*/
+
+$('#start-btn').click(function(){
+
+    drawSounds = [
+        new Audio('/assets/sounds/draw_1.mp3'),
+        new Audio('/assets/sounds/draw_2.mp3'),
+        new Audio('/assets/sounds/draw_3.mp3')
+    ];
+    dealSounds = [
+        new Audio('/assets/sounds/deal_1.mp3'),
+        new Audio('/assets/sounds/deal_2.mp3')
+    ];
+    discardSounds = [
+        new Audio('/assets/sounds/discard_1.mp3'),
+        new Audio('/assets/sounds/discard_2.mp3')
+    ];
+    outSound = new Audio('/assets/sounds/player_out.mp3');
+    outSoundNotFirst = new Audio('/assets/sounds/player_out_2.mp3');
+    roundStartSound = new Audio('/assets/sounds/round_start.mp3');
+    roundEndSound = new Audio('/assets/sounds/round_end.mp3');
+    yourTurnSound = new Audio('/assets/sounds/your_turn.mp3');
+    shuffleSound = new Audio('/assets/sounds/shuffle.mp3');
+
+    $('#app').removeClass("blur");
+    $('#start-panel').hide();
+
+    if ($('#playername-input').val() !== ""){
+        playerName = $('#playername-input').val();
+    }
+    else {
+        playerName = "Player";
+    }
+
+    startGame();
+});
+
+function startGame(){
+    let response = {
+        type: 'info',
+        payload: {
+            type: 'registration',
+            data: {
+                "gameId": "",
+                "playerName": playerName
+            }
+        },
+    }
+    shuffleSound.play().then(function(){
+        conn.send(JSON.stringify(response));
+    });
+}
+
 
 
 $('#hand').droppable();
@@ -108,16 +150,18 @@ $('#book-builder').droppable({
 
 $('#draw1, #draw2').click(function () {
     if (currentPlayer) {
-        var message = {
-            type: "action",
-            payload: {
-                type: $(this).prop('id'),
-                data: {
-                    player: playerId
+        if (!drawn){
+            var message = {
+                type: "intent",
+                payload: {
+                    type: $(this).prop('id'),
+                    data: {
+                        player: playerId
+                    }
                 }
             }
+            conn.send(JSON.stringify(message))
         }
-        conn.send(JSON.stringify(message))
     }
 });
 
@@ -190,6 +234,7 @@ function resetGoOutCards() {
 }
 
 $('#submit-book-btn').click(function () {
+    $('#submit-book-btn').hide();
     let bookArray = [];
     $('#book-holder').children().each(function () {
         var card = $(this);
@@ -220,7 +265,9 @@ $('#submit-book-btn').click(function () {
         bookArray.push($(this).prop('id').replace("card", ""));
     })
     books.push(bookArray);
-    enableOutButtons();
+    if (lastRound){
+        enableOutButtons();
+    }
     if ($('#hand').children().length < 4) {
         hideBookBuilder();
     }
@@ -259,7 +306,6 @@ $('#close-book-builder-btn').click(function () {
 
 
 export function addPlayer(playerId, playerName, playerGender, playerScore) {
-    let playerImage = faker.faker.image.urlLoremFlickr({height: 256, width: 256, category: `cartoon`});
     let newPlayer = `
     <div id="${playerId}" class="flex w-full h-full">
         <div id="player-name-holder" class="player-name-holder">
@@ -274,7 +320,9 @@ export function addPlayer(playerId, playerName, playerGender, playerScore) {
     let newPlayerLg = `
     <div id="${playerId}-lg" class="flex w-full h-full">
         <div class="player-photo-holder-lg">
-            <img class="playerphoto" src="${playerImage}"/>
+            <div class="text-stone-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="3em" height="3em" viewBox="0 0 24 24"><path fill="currentColor" d="M13.5 2c0 .444-.193.843-.5 1.118V5h5a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3h5V3.118A1.5 1.5 0 1 1 13.5 2M0 10h2v6H0zm24 0h-2v6h2zM9 14.5a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3m7.5-1.5a1.5 1.5 0 1 0-3 0a1.5 1.5 0 0 0 3 0"/></svg>
+            </div>
         </div>
         <div class="player-info-holder">
             <div class="player-name-holder-lg">
@@ -285,46 +333,69 @@ export function addPlayer(playerId, playerName, playerGender, playerScore) {
             </div>
         </div>
     </div>`;
+
     $('#player-grid-small').append(newPlayer);
     $('#player-grid-lg').append(newPlayerLg);
-
 }
+
+function createScoreboard(msg){
+    msg.payload.data.players.forEach((player, index) => {
+        let scoreboardLine = `
+            <div class="flex w-full my-1 items-center">
+              <p class="scoreboard-name flex w-1/2 justify-start pr-4">${player.name}</p>
+              <p class="scoreboard-score flex w-1/2 justify-end pl-4">${player.score}</p>
+            </div>`;
+        let hr = `<hr class="border-stone-700 border-2">`;
+
+        $('#scoreboard-line-holder').append(scoreboardLine);
+        if (index !== msg.payload.data.players.length - 1){
+            $('#scoreboard-line-holder').append(hr);
+        }
+    });
+    $('#app').addClass('blur');
+    $('#scoreboard').show();
+}
+
+$('#again-btn').click(function(){
+    location.reload();
+});
 
 export function createNewCard(id, suit, value) {
     var symbol = '';
     var color = '';
-    var stroke = '; -webkit-text-stroke-width: 1px; -webkit-text-stroke-color: black;'
+    //var stroke = '; -webkit-text-stroke-width: 1px; -webkit-text-stroke-color: black;'
+    var stroke = '';
     if (value === "JOKER") {
         value = "?";
     }
     switch (suit) {
         case "clubs":
-            symbol = "♣";
+            symbol = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 16 16"><path fill="currentColor" d="M11.5 12.5a3.5 3.5 0 0 1-2.684-1.254a20 20 0 0 0 1.582 2.907c.231.35-.02.847-.438.847H6.04c-.419 0-.67-.497-.438-.847a20 20 0 0 0 1.582-2.907a3.5 3.5 0 1 1-2.538-5.743a3.5 3.5 0 1 1 6.708 0A3.5 3.5 0 1 1 11.5 12.5"/></svg>';
             color = 'rgb(0 178 24)';
             break;
         case "diamonds":
-            symbol = "◆";
+            symbol = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 16 16"><path fill="currentColor" d="M2.45 7.4L7.2 1.067a1 1 0 0 1 1.6 0L13.55 7.4a1 1 0 0 1 0 1.2L8.8 14.933a1 1 0 0 1-1.6 0L2.45 8.6a1 1 0 0 1 0-1.2"/></svg>';
             color = 'rgb(49 88 225)';
             break;
         case "hearts":
-            symbol = "♥"
+            symbol = '<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 16 16\"><path fill=\"currentColor\" d=\"M4 1c2.21 0 4 1.755 4 3.92C8 2.755 9.79 1 12 1s4 1.755 4 3.92c0 3.263-3.234 4.414-7.608 9.608a.513.513 0 0 1-.784 0C3.234 9.334 0 8.183 0 4.92C0 2.755 1.79 1 4 1\"/></svg>';
             color = 'rgb(252 39 22)';
             break;
         case "spades":
-            symbol = "♠";
-            color = 'black'
+            symbol = '<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 16 16\"><path fill=\"currentColor\" d=\"M7.184 11.246A3.5 3.5 0 0 1 1 9c0-1.602 1.14-2.633 2.66-4.008C4.986 3.792 6.602 2.33 8 0c1.398 2.33 3.014 3.792 4.34 4.992C13.86 6.367 15 7.398 15 9a3.5 3.5 0 0 1-6.184 2.246a20 20 0 0 0 1.582 2.907c.231.35-.02.847-.438.847H6.04c-.419 0-.67-.497-.438-.847a20 20 0 0 0 1.582-2.907\"/></svg>';
+            color = 'black';
             stroke = '';
             break;
         case "stars":
-            symbol = "★";
-            color = 'rgb(251 213 20)';
+            symbol = '<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 16 16\"><path fill=\"currentColor\" d=\"M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327l4.898.696c.441.062.612.636.282.95l-3.522 3.356l.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z\"/></svg>';
+            color = 'rgb(241,143,0)';
             break;
         default:
             symbol = ""
             color = 'rgb(126 34 206)'
             break;
     }
-    return '<div id="card' + id + '" class="playingcard hidden" style="color: ' + color + stroke + '"><div class="flex h-full w-full items-center justify-center py-2 text-3xl lg:text-5xl xl:text-6xl"><div class="w-full h-full content-evenly p-2"><p class="flex w-full h-1/2 lg:h-1/3 text-center justify-center lg:justify-start items-center"><span class="">' + value + '</span></p><p class="hidden lg:flex w-full h-1/3 text-center justify-center items-center"><span>' + symbol + '</span></p><p class="flex w-full h-1/2 lg:h-1/3 text-center justify-center lg:justify-end items-baseline"><span class="block lg:hidden">' + symbol + '</span><span class="hidden lg:block">' + value + '</span></p></div></div></div>';
+    return '<div id="card' + id + '" class="playingcard hidden" style="color: ' + color + stroke + '"><div class="flex h-full w-full items-center justify-center py-2 text-3xl lg:text-5xl"><div class="w-full h-full content-evenly px-2"><p class="flex w-full h-1/2 lg:h-1/3 text-center justify-center lg:justify-start items-center lg:items-start"><span class="">' + value + '</span></p><p class="hidden lg:flex w-full h-1/3 text-center justify-center items-center"><span>' + symbol + '</span></p><p class="flex w-full h-1/2 lg:h-1/3 text-center justify-center lg:justify-end items-baseline"><span class="block lg:hidden">' + symbol + '</span><span class="hidden lg:block">' + value + '</span></p></div></div></div>';
 }
 
 export function changeDiscard(id, suit, value) {
@@ -342,16 +413,18 @@ export function changeDiscard(id, suit, value) {
     card.show().effect('shake', {direction: "down", distance: 5, times: 1});
     card.click(function () {
         if (currentPlayer) {
-            var message = {
-                type: "action",
-                payload: {
-                    type: "drawdiscard",
-                    data: {
-                        player: playerId
+            if (!drawn){
+                var message = {
+                    type: "intent",
+                    payload: {
+                        type: "drawdiscard",
+                        data: {
+                            player: playerId
+                        }
                     }
                 }
+                conn.send(JSON.stringify(message))
             }
-            conn.send(JSON.stringify(message))
         }
     });
     playRandomDiscard();
@@ -567,7 +640,7 @@ export function handleActionMessage(msg) {
         case "draw2":
         case "draw1":
             if (msg.payload.data.currentPlayer === playerId) {
-
+                drawn = true
                 for (const card of msg.payload.data.player.hand) {
                     if (!$('#card' + card.id).length) {
                         addCardToHand(card.id, card.suit, card.value);
@@ -595,7 +668,7 @@ export function handleActionMessage(msg) {
                                     if (lastRound) {
                                         if ($('#hand').children().length < 1) {
                                             var outMessage = {
-                                                type: 'action',
+                                                type: 'intent',
                                                 payload: {
                                                     type: 'out',
                                                     data: {
@@ -612,7 +685,7 @@ export function handleActionMessage(msg) {
                                                 remainder.push($(this).prop('id').replace("card", ""));
                                             });
                                             var layMessage = {
-                                                type: 'action',
+                                                type: 'intent',
                                                 payload: {
                                                     type: 'lay',
                                                     data: {
@@ -628,7 +701,7 @@ export function handleActionMessage(msg) {
                                     } else {
                                         if (books.length > 0 && $('#hand').children().length < 1) {
                                             var outFirstMessage = {
-                                                type: 'action',
+                                                type: 'intent',
                                                 payload: {
                                                     type: 'out',
                                                     data: {
@@ -641,7 +714,7 @@ export function handleActionMessage(msg) {
                                             conn.send(JSON.stringify(outFirstMessage));
                                         } else {
                                             var message = {
-                                                type: 'action',
+                                                type: 'intent',
                                                 payload: {
                                                     type: 'discard',
                                                     data: {
@@ -675,7 +748,7 @@ export function handleActionMessage(msg) {
                                     if (lastRound) {
                                         if ($('#hand').children().length < 1) {
                                             var outMessage = {
-                                                type: 'action',
+                                                type: 'intent',
                                                 payload: {
                                                     type: 'out',
                                                     data: {
@@ -692,7 +765,7 @@ export function handleActionMessage(msg) {
                                                 remainder.push($(this).prop('id').replace("card", ""));
                                             });
                                             var layMessage = {
-                                                type: 'action',
+                                                type: 'intent',
                                                 payload: {
                                                     type: 'lay',
                                                     data: {
@@ -708,7 +781,7 @@ export function handleActionMessage(msg) {
                                     } else {
                                         if (books.length > 0 && $('#hand').children().length < 1) {
                                             var outFirstMessage = {
-                                                type: 'action',
+                                                type: 'intent',
                                                 payload: {
                                                     type: 'out',
                                                     data: {
@@ -721,7 +794,7 @@ export function handleActionMessage(msg) {
                                             conn.send(JSON.stringify(outFirstMessage));
                                         } else {
                                             var message = {
-                                                type: 'action',
+                                                type: 'intent',
                                                 payload: {
                                                     type: 'discard',
                                                     data: {
@@ -804,14 +877,12 @@ export function handleActionMessage(msg) {
 export function handleInfoMessage(msg) {
     switch (msg.payload.type) {
         case "welcome":
-            let response = {
-                type: 'info',
-                payload: {
-                    type: 'registration',
-                    data: 'player1'
-                },
+            if (playerName !== ""){
+                startGame();
             }
-            conn.send(JSON.stringify(response));
+            else {
+                $('#start-panel').show();
+            }
             break;
         case "registration":
             playerId = msg.payload.data;
@@ -845,6 +916,7 @@ export function handleStateMessage(msg) {
             setInfo(msg);
             hideOutPlayers();
             hideActionBar();
+            updateScores(msg);
             $('#out-btn, #out-btn-lg').prop('disabled', true);
             discardTop = msg.payload.data.discardPileTop.id;
             roundStartSound.play().then(function () {
@@ -863,6 +935,7 @@ export function handleStateMessage(msg) {
             break;
         case "update":
             displayCurrentPlayer(msg);
+            drawn = false;
             discardTop = msg.payload.data.discardPileTop.id;
             var updateAck = {
                 type: 'ack',
@@ -889,6 +962,10 @@ export function handleStateMessage(msg) {
                 }
             };
             conn.send(JSON.stringify(endrAck));
+            break;
+        case "endg":
+            createScoreboard(msg);
+            conn.close();
             break;
     }
 }

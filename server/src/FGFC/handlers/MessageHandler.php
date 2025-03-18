@@ -13,7 +13,7 @@ class MessageHandler
     public FiveCrownsSinglePlayerServer $server;
     public ConnectionInterface $from;
     public array $msg;
-    public Game $game;
+    public Game|null $game;
     public array $messages = [];
     public LoopInterface $eventLoop;
     public function __construct(FiveCrownsSinglePlayerServer $server, ConnectionInterface $from, array $msg, LoopInterface $eventLoop)
@@ -30,6 +30,11 @@ class MessageHandler
     }
     public function sendMessages() : void
     {
+        if ($this->game === null){
+            foreach($this->messages as $message){
+                $message->send($this->from);
+            }
+        }
         foreach ($this->game->getPlayers() as $player) {
             if (!$player instanceof CPUPlayer){
                 foreach ($this->messages as $message) {

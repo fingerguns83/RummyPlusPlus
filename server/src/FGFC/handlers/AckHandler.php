@@ -15,8 +15,8 @@ class AckHandler extends MessageHandler
     public function handle() : void {
         switch ($this->msg['payload']['type']){
             case AckType::REGISTRATION->value:
-                $this->game->startGame();
-                $this->game->nextRound();
+                //$this->game->startGame();
+                //$this->game->nextRound();
                 break;
             case AckType::INIT->value:
                 foreach ($this->game->getPlayers() as $player){
@@ -51,9 +51,6 @@ class AckHandler extends MessageHandler
                 }
                 if ($this->game->getCurrentRound()->getOutPlayer() && $this->game->getNextPlayer() === $this->game->getCurrentRound()->getOutPlayer()) {
                     DebugOutput::send("(Out player: " . $this->game->getCurrentRound()->getOutPlayer()->getId() . " is same as next player: " . $this->game->getNextPlayer()->getId() . ")");
-                    foreach ($this->game->getPlayers() as $player){
-                        $player->increaseScore($player->getRoundScore());
-                    }
                     $this->eventLoop->addTimer(2, function (){
                         $this->messages[] = new Message(MessageType::STATE, new MessagePayload(StateType::ENDR, $this->game->getGameState()));
                         $this->sendMessages();
@@ -73,6 +70,9 @@ class AckHandler extends MessageHandler
                 });
                 break;
             case AckType::ENDR->value:
+                foreach ($this->game->getPlayers() as $player){
+                    $player->increaseScore($player->getRoundScore());
+                }
                 $this->eventLoop->addTimer(3, function(){
                     $this->game->nextRound();
                 });

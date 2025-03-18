@@ -8,4 +8,5 @@ enum StateType: string
     case BEGIN = 'begin';
     case UPDATE = 'update';
     case ENDR = 'endr';
+    case ENDG = 'endg';
 }

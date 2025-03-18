@@ -4,6 +4,7 @@ namespace FGFC;
 
 use Faker\Factory;
 use FGFC\enum\ActionType;
+use FGFC\enum\BookType;
 use FGFC\enum\MessageType;
 use FGFC\helpers\DebugOutput;
 use Generator;
@@ -11,9 +12,11 @@ use PHP_Parallel_Lint\PhpConsoleColor\ConsoleColor;
 
 class CPUPlayer extends Player
 {
+    private int $calcCount = 0;
     private string $gender;
     private int $difficulty;
 
+    private array|Card $handStrategy = [];
     private Card|null $tempCard = null;
     private array $possibleBookSizes;
     private int $currentHandQuality;
@@ -64,6 +67,7 @@ class CPUPlayer extends Player
      */
     private function evaluateSet(array $cards, Game $game): int
     {
+        $this->calcCount++;
         DebugOutput::send("Starting to evaluate set of cards");
 
         // Define an array for non-joker and non-wildcard cards
@@ -97,11 +101,16 @@ class CPUPlayer extends Player
 
         // The number of distinct sets of cards is the length of the sets array, but we subtract 1 because the array is 0-indexed.
         DebugOutput::send("Calculating the number of distinct sets of cards");
-        $result = count($sets) - 1;
-
-        DebugOutput::send("Finished evaluating set of cards. Result is: " . $result);
-
-        return $result;
+        if (count($sets) == 1){
+            return 0;
+        }
+        else {
+            $tempScore = 0;
+            foreach($cards as $card){
+                $tempScore += $card->getPoints($game->getRoundNumber());
+            }
+            return $tempScore;
+        }
     }
 
     /**
@@ -141,8 +150,8 @@ class CPUPlayer extends Player
         }
         DebugOutput::send("Regular cards sorted according to suits...");
 
-        // Initialize a variable for the biggest set count
-        $biggestSetCount = 0;
+        $score = PHP_INT_MAX;
+
         // Loop over the suits array
         foreach ($suits as $suit => $values) {
             // Sort values in ascending order based on their value
@@ -174,52 +183,20 @@ class CPUPlayer extends Player
             $missingCount = $expectedRegularCount - $actualRegularCount;
             DebugOutput::send("Missing count: $missingCount");
 
-            DebugOutput::send("Wildcard count: " . count($wildcardCards));
-
-            // If the missing cards are more than wildcard cards, check if actual count is larger than biggest set count
-            if ($missingCount > count($wildcardCards)) {
-                // Initialize variables for tracking
-                $maxConsecutiveCount = 0;
-                $currentConsecutiveCount = 1;
-
-                // Loop over sorted actual values from the second element
-                for ($i = 1; $i < count($values); $i++) {
-                    $prevCardValue = $values[$i - 1]->getValue();
-                    $curCardValue = $values[$i]->getValue();
-
-                    // Check for consecutive cards
-                    if ($curCardValue - 1 === $prevCardValue)
-                        $currentConsecutiveCount++;
-                    else {
-                        // If break in sequence, update max count if necessary
-                        if ($currentConsecutiveCount > $maxConsecutiveCount)
-                            $maxConsecutiveCount = $currentConsecutiveCount;
-                        // Reset current count for the next sequence
-                        $currentConsecutiveCount = 1;
-                    }
+            if ($missingCount > count($wildcardCards) || (count($values) + count($wildcardCards) < 3)) {
+                $tempScore = 0;
+                foreach ($cards as $card) {
+                    $tempScore += $card->getPoints($game->getRoundNumber());
                 }
-
-                // After the loop, update max count if last sequence was the max one
-                if ($currentConsecutiveCount > $maxConsecutiveCount)
-                    $maxConsecutiveCount = $currentConsecutiveCount;
-
-                // Now use maxConsecutiveCount in your check
-                if ($maxConsecutiveCount > $biggestSetCount)
-                    $biggestSetCount = $maxConsecutiveCount;
+                if ($tempScore < $score){
+                    $score = $tempScore;
+                }
             }
-            // If wildcard cards can cover missing cards, add wildcard count to the actual count and if it's larger than biggest set count, update it
             else {
-                $actualCountWithWildcards = $actualRegularCount + count($wildcardCards);
-                if ($actualCountWithWildcards > $biggestSetCount) {
-                    $biggestSetCount = $actualCountWithWildcards;
-                }
+                $score = 0;
             }
         }
-        DebugOutput::send("Biggest set count calculation completed...$biggestSetCount");
-
-        // Return the difference between the total count of cards and largest set count, representing the number of cards left that cannot form a set
-        DebugOutput::send("End evaluateRun method process.");
-        return count($cards) - $biggestSetCount;
+        return $score;
     }
 
     /**
@@ -283,6 +260,8 @@ class CPUPlayer extends Player
      */
     private function evaluateBook(array $values, array $group_sizes): Generator
     {
+
+        rsort($group_sizes);
         DebugOutput::send("evaluateBook method execution started");
 
         // Loop over all possible combinations in the set of values.
@@ -358,7 +337,7 @@ class CPUPlayer extends Player
         DebugOutput::send('Hand to be evaluated is set');
 
         // Initializes the score with a high number (max possible score)
-        $score = 100;
+        $score = PHP_INT_MAX;
         $tmpHand = array();
 
         DebugOutput::send('Start of checking all possible book sizes');
@@ -372,16 +351,33 @@ class CPUPlayer extends Player
                 // For each set in the combination, both Set and Run are evaluated and the lowest score is added to the temporary score
                 foreach ($combination as $cardSet) {
                     $setScore = $this->evaluateSet($cardSet, $game);
-                    $runScore = $this->evaluateRun($cardSet, $game);
-                    DebugOutput::send('Calculated setScore: ' . $setScore . ', runScore: ' . $runScore);
-                    ($runScore <= $setScore) ? $tmpScore += $runScore : $tmpScore += $setScore;
+                    if ($setScore == 0){
+                        $tmpScore += $setScore;
+                    }
+                    else {
+                        $runScore = $this->evaluateRun($cardSet, $game);
+                        DebugOutput::send('Calculated setScore: ' . $setScore . ', runScore: ' . $runScore);
+                        ($runScore <= $setScore) ? $tmpScore += $runScore : $tmpScore += $setScore;
+                    }
                 }
                 DebugOutput::send('End of evaluating each set. Temporary score: ' . $tmpScore);
                 // If the temporary score is lower than the current score, it becomes the new score and the hand considered is stored
-                if ($tmpScore < $score) {
+                if ($tmpScore <= 0){
                     $score = $tmpScore;
                     $tmpHand = $combination;
-                    DebugOutput::send('New lowest score found. Updated score: ' . $score);
+                    break;
+                }
+                else {
+                    if ($tmpScore < $score) {
+                        $score = $tmpScore;
+                        $tmpHand = $combination;
+                        DebugOutput::send('New lowest score found. Updated score: ' . $score);
+                    }
+
+                    if ($this->calcCount > 5000){
+                        $this->calcCount = 0;
+                        break;
+                    }
                 }
             }
         }
@@ -650,6 +646,33 @@ class CPUPlayer extends Player
             $this->turnDraw($game);
         } else {
             $this->turnDiscard($game);
+        }
+        $this->calcCount = 0;
+    }
+
+    public function createInitialStrategy(): void {
+        $bySuit = [];
+        $byValue = [];
+        foreach($this->getHand() as $card){
+            if ($card->isJoker()){
+                $bySuit['joker'] = $card;
+            }
+            else {
+                $bySuit[$card->getSuit()] = $card;
+            }
+            $byValue[$card->getValue()] = $card;
+        }
+
+        foreach ($byValue as $key => $cards){
+            if (count($cards) >= 3){
+                $this->handStrategy[] = new SetBook($cards, $key);
+            }
+        }
+    }
+    public function strategize(Game $game): void{
+        if (count($this->handStrategy) == 0){
+            $this->createInitialStrategy();
+            return;
         }
     }
 

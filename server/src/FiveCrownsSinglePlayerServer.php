@@ -7,7 +7,7 @@ use FGFC\enum\InfoType;
 use FGFC\enum\MessageType;
 use FGFC\Game;
 use FGFC\handlers\AckHandler;
-use FGFC\handlers\ActionHandler;
+use FGFC\handlers\IntentHandler;
 use FGFC\handlers\InfoHandler;
 use FGFC\handlers\StateHandler;
 use FGFC\helpers\Client;
@@ -24,6 +24,7 @@ use React\EventLoop\LoopInterface;
 
 class FiveCrownsSinglePlayerServer implements MessageComponentInterface
 {
+    private \SplObjectStorage $games;
     private \SplObjectStorage $clients;
     private LoopInterface $eventLoop;
 
@@ -31,6 +32,7 @@ class FiveCrownsSinglePlayerServer implements MessageComponentInterface
     {
         DebugOutput::send("Started Five Crowns Single Player Server");
         $this->clients = new \SplObjectStorage;
+        $this->games = new \SplObjectStorage;
         $this->eventLoop = $loop;
 
         $this->eventLoop->addPeriodicTimer(4, function () {
@@ -45,7 +47,7 @@ class FiveCrownsSinglePlayerServer implements MessageComponentInterface
 
     function onOpen(ConnectionInterface $conn): void
     {
-        $client = new Client($conn, null, true, new Game(), null);
+        $client = new Client($conn, null, true, null, null);
         $this->clients->attach($client);
 
         $message = new Message(MessageType::INFO, new MessagePayload(InfoType::WELCOME));
@@ -84,8 +86,8 @@ class FiveCrownsSinglePlayerServer implements MessageComponentInterface
             case MessageType::INFO->value:
                 (new InfoHandler($this, $from, $msgarr, $this->getEventLoop()))->handle();
                 break;
-            case MessageType::ACTION->value:
-                (new ActionHandler($this, $from, $msgarr, $this->getEventLoop()))->handle();
+            case MessageType::INTENT->value:
+                (new IntentHandler($this, $from, $msgarr, $this->getEventLoop()))->handle();
                 break;
             case MessageType::STATE->value:
                 (new StateHandler($this, $from, $msgarr, $this->getEventLoop()))->handle();
@@ -107,6 +109,14 @@ class FiveCrownsSinglePlayerServer implements MessageComponentInterface
     }
 
     /**
+     * @return SplObjectStorage
+     */
+    public function getGames(): \SplObjectStorage
+    {
+        return $this->games;
+    }
+
+    /**
      * @return LoopInterface
      */
     public function getEventLoop(): LoopInterface
@@ -119,7 +129,7 @@ $loop = \React\EventLoop\Factory::create();
 
 $socket = new React\Socket\SocketServer('tcp://0.0.0.0:8988', [], $loop);
 $wsServer = new WsServer(new FiveCrownsSinglePlayerServer($loop));
-$wsServer->enableKeepAlive($loop);
+$wsServer->enableKeepAlive($loop, 120);
 $server = new IoServer(new HttpServer($wsServer), $socket, $loop);
 
 $server->run();
