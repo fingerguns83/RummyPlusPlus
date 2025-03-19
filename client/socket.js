@@ -1,11 +1,10 @@
 import * as FiveCrowns from './main.js';
 import * as faker from '@faker-js/faker';
 
+// Define server address
+let serverAddress = 'ws://localhost:8988');
+export let conn = new WebSocket(serverAddress);
 
-let timeout = 0; // declare outside websocket function
-//export let conn = new WebSocket('wss://serv.rummyplusplus.com');
-export let conn = new WebSocket('ws://localhost:8988');
-//export let conn = new WebSocket('ws://10.0.0.8:8988');
 var timeoutInterval;
 
 
@@ -13,7 +12,7 @@ function resetAndReconnect() {
     clearInterval(timeoutInterval); // stop the interval
     timeout = 0; // reset timeout
     conn.close(); // close current connection
-    conn = new WebSocket('wss://serv.rummyplusplus.com'); // reconnect
+    conn = new WebSocket(serverAddress); // reconnect
 }
 
 function checkTimeout(){
